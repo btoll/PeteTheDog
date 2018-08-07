@@ -19,11 +19,8 @@ type Block struct {
 
 func add(block *Block) (*Block, error) {
 	if l.Len() > 0 {
-		if e := l.Back(); e != nil {
-			prev := e.Value.(*Block)
-			if block.LastHash != getHash(prev.LastHash, prev.Msg) {
-				return nil, errors.New("Hashes don't match!")
-			}
+		if err := isBlockValid(block); err != nil {
+			return nil, err
 		}
 	}
 	l.PushBack(block)
@@ -34,6 +31,16 @@ func getHash(lastHash, msg string) string {
 	hash.Write([]byte(lastHash + msg))
 	defer hash.Reset()
 	return hex.EncodeToString(hash.Sum(nil))
+}
+
+func isBlockValid(block *Block) error {
+	if e := l.Back(); e != nil {
+		prev := e.Value.(*Block)
+		if block.LastHash != getHash(prev.LastHash, prev.Msg) {
+			return errors.New("Hashes don't match!")
+		}
+	}
+	return nil
 }
 
 func newBlock(msg string) (*Block, error) {
